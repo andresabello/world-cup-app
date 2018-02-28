@@ -9,9 +9,9 @@ import Vuex from 'vuex'
 import store from './store'
 import VueRouter from 'vue-router'
 import App from './components/App.vue'
-import Login from './components/auth/Login'
-import Register from './components/auth/Register'
-import Dashboard from './components/pages/Dashboard'
+import Login from './components/auth/Login.vue'
+import Register from './components/auth/Register.vue'
+import Dashboard from './components/pages/Dashboard.vue'
 
 Vue.use(Vuex)
 
