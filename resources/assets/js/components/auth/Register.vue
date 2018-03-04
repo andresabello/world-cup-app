@@ -7,7 +7,7 @@
                         <div class="card-title">
                             <h1 class="text-center">Register</h1>
                         </div>
-                        <pi-form :fields="fields" :action="action"></pi-form>
+                        <pi-form :fields="fields" :action="action" @success="success"></pi-form>
                     </div>
                 </div>
             </div>
@@ -24,7 +24,18 @@
             fields: 'registerForm',
             action: 'registerAction'
         }),
-        methods: {},
+        methods: {
+            success(response) {
+                this.notifySuccess(response.message)
+
+                setTimeout(function () {
+                    vm.$router.push({
+                        name: 'home'
+                    })
+                }, 2500)
+
+            }
+        },
         components: {
             "pi-form": PiForm
         }

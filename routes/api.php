@@ -23,7 +23,11 @@ Route::prefix('v1')->group(function () {
     //logout
 
     //once logged in
-    Route::middleware('auth:api')->group(function () {});
+    Route::middleware('auth:api')->group(function () {
+        Route::get('hello', function (){
+            return 'very secure';
+        });
+    });
 });
 
 

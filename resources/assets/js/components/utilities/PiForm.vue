@@ -57,17 +57,13 @@
                 let vm = this;
                 vm.form.post(vm.action)
                     .then(data => vm.setSuccessMessage(data.message))
-                    .then(() =>
-                        setTimeout(function () {
-                            vm.success.active = false
-                            vm.form.reset()
-                            let data = vm.setFields(vm.fields)
-                            vm.form = new Form(data)
-                            vm.$router.push({
-                                name: 'home'
-                            })
-                        }, 1000)
-                    )
+                    .then(() => {
+                        vm.$emit('success', vm.success)
+                        vm.success.active = false
+                        vm.form.reset()
+                        let data = vm.setFields(vm.fields)
+                        vm.form = new Form(data)
+                    })
                     .catch(errors => console.log(errors))
             },
 

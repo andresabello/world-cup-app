@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Services\Auth;
+use App\Services\AuthClient;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -27,14 +29,19 @@ class LoginController extends Controller
      * @var string
      */
     protected $redirectTo = '/home';
+    protected $authClient;
+    protected $auth;
 
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @param Auth $auth
+     * @param AuthClient $authClient
      */
-    public function __construct()
+    public function __construct(Auth $auth, AuthClient $authClient)
     {
+        $this->auth = $auth;
+        $this->authClient = $authClient;
         $this->middleware('api')->except('logout');
     }
 
@@ -59,17 +66,37 @@ class LoginController extends Controller
     /**
      * Send the response after the user was authenticated.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     protected function sendLoginResponse(Request $request)
     {
         $this->clearLoginAttempts($request);
 
-        return $this->authenticated($request, $this->guard()->user())
-            ?: response()->json([
+        if ($authenticated = $this->authenticated($request, $this->guard()->user())) {
+            return response()->json(array_merge([
                 'status' => true,
                 'message' => 'logged in'
-            ]);
+            ], $authenticated));
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'unable to login, please try again'
+        ], 405);
+    }
+
+    /**
+     * The user has been authenticated.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param  mixed $user
+     * @return mixed
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        $client = $this->authClient->getClient('password', env('OAUTH_PASSWORD_CLIENT'));
+        //TODO decide the scopes
+        dd($this->auth->attemptLogin($client, $user, $request->get('password'), null));
     }
 }

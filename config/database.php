@@ -43,8 +43,8 @@ return [
             'driver' => 'mysql',
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
+            'database' => env('DB_DATABASE', 'reminder'),
+            'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
@@ -52,6 +52,33 @@ return [
             'prefix' => '',
             'strict' => true,
             'engine' => null,
+        ],
+
+        'mysql_testing' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('TESTING_DB_DATABASE', 'reminder_testing'),
+            'username' => env('TESTING_DB_USERNAME', 'root'),
+            'password' => env('TESTING_DB_PASSWORD', ''),
+            'unix_socket' => env('TESTING_DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
+        'sqlite_testing' => [
+            'driver'   => 'sqlite',
+            'database' => storage_path().'/testing.sqlite',
+            'prefix'   => '',
+        ],
+
+        'sqlite_unit_testing' => [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => ''
         ],
 
         'pgsql' => [

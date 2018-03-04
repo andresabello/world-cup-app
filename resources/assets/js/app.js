@@ -3,7 +3,7 @@
  * includes Vue and other libraries. It is a great starting point when
  * building robust, powerful web applications using Vue and Laravel.
  */
-require('./bootstrap');
+require('./bootstrap')
 import Vue from 'vue'
 import Vuex from 'vuex'
 import store from './store'
@@ -11,6 +11,7 @@ import VueRouter from 'vue-router'
 import App from './components/App.vue'
 import Login from './components/auth/Login.vue'
 import Register from './components/auth/Register.vue'
+import Settings from './components/pages/Settings.vue'
 import Dashboard from './components/pages/Dashboard.vue'
 
 Vue.use(Vuex)
@@ -30,6 +31,11 @@ const router = new VueRouter({
             path: '/admin',
             name: 'home',
             component: Dashboard
+        },
+        {
+            path: '/settings',
+            name: 'settings',
+            component: Settings
         },
         {
             path: '/register',

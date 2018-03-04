@@ -23,9 +23,14 @@
         </whitelist>
     </filter>
     <php>
+        <env name="APP_URL" value="http://reminder-app.localhost"/>
+        <env name="APP_KEY" value="base64:/8epMoRuLUvtAE5Xb+b+xx7KIiavApJ/fhw7p/DUXCc="/>
         <env name="APP_ENV" value="testing"/>
-        <env name="CACHE_DRIVER" value="array"/>
-        <env name="SESSION_DRIVER" value="array"/>
+        <env name="CACHE_DRIVER" value="file"/>
+        <env name="SESSION_DRIVER" value="file"/>
         <env name="QUEUE_DRIVER" value="sync"/>
+        <env name="DB_CONNECTION" value="mysql_testing"/>
+        <env name="OAUTH_PASSWORD_CLIENT" value="yes"/>
+        <env name="OAUTH_PASSWORD_SECRET" value="secret"/>
     </php>
 </phpunit>
