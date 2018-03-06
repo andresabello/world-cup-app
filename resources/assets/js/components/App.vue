@@ -15,7 +15,7 @@
 
     export default {
         mounted() {
-            console.log('Only see this once logged in')
+
         },
         components: {
             navigation: Nav

@@ -56,13 +56,15 @@
             onSubmit() {
                 let vm = this;
                 vm.form.post(vm.action)
-                    .then(data => vm.setSuccessMessage(data.message))
-                    .then(() => {
-                        vm.$emit('success', vm.success)
-                        vm.success.active = false
-                        vm.form.reset()
-                        let data = vm.setFields(vm.fields)
-                        vm.form = new Form(data)
+                    .then(data => {
+                        vm.setSuccessMessage(data.message)
+                        vm.$emit('success', data)
+                        setTimeout(() => {
+                            vm.success.active = false
+                            vm.form.reset()
+                            let data = vm.setFields(vm.fields)
+                            vm.form = new Form(data)
+                        }, 3000)
                     })
                     .catch(errors => console.log(errors))
             },

@@ -6,9 +6,11 @@ const state = {
     loggedIn: false,
     registerAction: `${env.url}/${env.api}/register`,
     loginAction: `${env.url}/${env.api}/login`,
+    token: '',
     registerForm: {
         name: {
             'message': 'Name',
+
             'type': 'text'
         },
         email: {
@@ -51,6 +53,7 @@ const getters = {
     loginForm: state => state.loginForm,
     registerAction: state => state.registerAction,
     loginAction: state => state.loginAction,
+    token: state => state.token,
 }
 
 // actions
@@ -59,6 +62,9 @@ const actions = {
         auth.loggedIn(loggedIn => {
             commit('setLoggedIn', loggedIn)
         })
+    },
+    setToken ({ commit }, token) {
+        commit('setToken', token)
     }
 }
 
@@ -66,6 +72,9 @@ const actions = {
 const mutations = {
     setLoggedIn (state, loggedIn) {
         state.loggedIn = loggedIn
+    },
+    setToken (state, token) {
+        state.token = token
     }
 }
 

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Services\Auth;
+use App\Services\AuthClient;
 use App\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
@@ -9,6 +11,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
 
+/**
+ * Class RegisterController
+ * @package App\Http\Controllers\Auth
+ */
 class RegisterController extends Controller
 {
     /*
@@ -31,14 +37,28 @@ class RegisterController extends Controller
      */
     protected $redirectTo = '/admin';
 
+
+    /**
+     * @var Auth
+     */
+    protected $auth;
+
+    /**
+     * @var AuthClient
+     */
+    protected $authClient;
+
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @param Auth $auth
+     * @param AuthClient $authClient
      */
-    public function __construct()
+    public function __construct(Auth $auth, AuthClient $authClient)
     {
         $this->middleware('guest');
+        $this->auth = $auth;
+        $this->authClient = $authClient;
     }
 
     /**
@@ -82,9 +102,18 @@ class RegisterController extends Controller
         $this->validator($request->all())->validate();
         event(new Registered($user = $this->create($request->all())));
         $this->guard()->login($user);
-        return $this->registered($request, $user) ?: response()->json([
-            'status' => true,
-            'message' => 'registered'
-        ]);
+        $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
+        //TODO decide the scopes
+        $response = $this->auth->attemptLogin($client, $user, $request->get('password'), null);
+        if (is_array($response)) {
+            $cookie = $this->auth->generateHttpOnlyCookie($response);
+            unset($response['refresh_token']);
+            return $this->registered($request, $user) ?: response()->json(array_merge([
+                'status' => true,
+                'message' => 'registered'
+            ], $response))->cookie($cookie);
+        }
+
+        return response()->json($response, 422);
     }
 }

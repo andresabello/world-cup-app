@@ -74,10 +74,12 @@ class LoginController extends Controller
         $this->clearLoginAttempts($request);
 
         if ($authenticated = $this->authenticated($request, $this->guard()->user())) {
+            $cookie = $this->auth->generateHttpOnlyCookie($authenticated);
+            unset($authenticated['refresh_token']);
             return response()->json(array_merge([
                 'status' => true,
                 'message' => 'logged in'
-            ], $authenticated));
+            ], $authenticated))->cookie($cookie);
         }
 
         return response()->json([
@@ -95,8 +97,9 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        $client = $this->authClient->getClient('password', env('OAUTH_PASSWORD_CLIENT'));
+        $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
         //TODO decide the scopes
-        dd($this->auth->attemptLogin($client, $user, $request->get('password'), null));
+        $response = $this->auth->attemptLogin($client, $user, $request->get('password'), null);
+        return $this->auth->generateHttpOnlyCookie($response);
     }
 }

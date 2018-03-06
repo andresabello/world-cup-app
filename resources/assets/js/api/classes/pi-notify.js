@@ -1,31 +1,20 @@
 export default class Notify {
 
-
-    success(form, url) {
-        this.submit(form,`${url}/${this.registerUrl}`,form.data)
+    set(element, message, type = 'success', primary = true, time = 3000) {
+        primary = primary ? 'alert-primary' : 'alert-secondary'
+        type = `alert-${type}`
+        let content = `<div id="pi-notify" class="alert ${primary} ${type}" role="alert" v-if="display">${message}</div>`
+        Notify.appendAlert(element, content)
+        this.clear(document.getElementById('pi-notify'), time)
     }
 
-    login(form, url) {
-        this.submit(form,`${url}/${this.loginUrl}`,form.data)
+    clear(element, time) {
+        setTimeout(() => {
+            element.parentNode.removeChild(element)
+        }, time)
     }
 
-    submit(form, action, data) {
-        return new Promise((resolve, reject) => {
-            form.post(action, data)
-                .then(({data}) => resolve(data))
-                .catch(error => reject(error.response.data))
-        })
-    }
-
-    loggedIn () {
-        return !!this.storage.token
-    }
-
-    setToken(token) {
-        this.storage.token = token
-    }
-
-    logout(form, url) {
-        this.submit(form,`${url}/${this.logoutUrl}`,form.data)
+    static appendAlert(element, content) {
+        element.body.innerHTML = element.body.innerHTML + content
     }
 }

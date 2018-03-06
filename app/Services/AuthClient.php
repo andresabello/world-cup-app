@@ -19,7 +19,7 @@ class AuthClient
      * @param string $name
      * @return mixed
      */
-    public function getClient(string $type, string $name)
+    public function get(string $type, string $name)
     {
         $client = Client::where('revoked', 0)->where('name', $name);
 

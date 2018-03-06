@@ -16,8 +16,9 @@
 </template>
 
 <script>
-    import PiForm from '../utilities/PiForm'
-    import {mapGetters} from 'vuex'
+
+    import PiForm from '../utilities/PiForm.vue'
+    import {mapGetters, mapActions} from 'vuex'
 
     export default {
         computed: mapGetters({
@@ -26,15 +27,17 @@
         }),
         methods: {
             success(response) {
-                this.notifySuccess(response.message)
-
-                setTimeout(function () {
+                let vm = this
+                vm.setToken(response.access_token)
+                setTimeout(() =>  {
                     vm.$router.push({
                         name: 'home'
                     })
                 }, 2500)
-
-            }
+            },
+            ...mapActions({
+                setToken: 'setToken',
+            })
         },
         components: {
             "pi-form": PiForm

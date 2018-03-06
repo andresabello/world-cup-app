@@ -11,7 +11,8 @@ let mix = require('laravel-mix');
  |
  */
 
+// language=ECMAScript 6
 mix.js('resources/assets/js/app.js', 'public/js')
     .extract(['vue', 'vue-router'])
     .sass('resources/assets/sass/app.scss', 'public/css')
-    .sourceMaps();
+    .sourceMaps()

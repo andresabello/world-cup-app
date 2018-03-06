@@ -30,12 +30,14 @@ const router = new VueRouter({
         {
             path: '/admin',
             name: 'home',
-            component: Dashboard
+            component: Dashboard,
+            secure: true
         },
         {
             path: '/settings',
             name: 'settings',
-            component: Settings
+            component: Settings,
+            secure: true
         },
         {
             path: '/register',
@@ -48,6 +50,24 @@ const router = new VueRouter({
             component: Login
         },
     ]
+});
+
+router.beforeEach((to, from, next) => {
+    // Look at all routes
+    router.options.routes.forEach((route) => {
+        // If this is the current route and it's secure
+        if (to.matched[0].path === route.path && route.secure) {
+            // Verify that the user isn't logged in
+            axios.post('auth/loggedIn').catch((response) => {
+                // Kill the session
+                // router.app.$session.destroy();
+                // Route back to the landing
+                return next('/login');
+            });
+        }
+    });
+    // Proceed as normal
+    next();
 });
 
 

@@ -7,24 +7,21 @@ use App\User;
 use Illuminate\Http\Request;
 use Laravel\Passport\Client;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cookie;
-use Optimus\ApiConsumer\Facade\ApiConsumer;
+use Symfony\Component\HttpFoundation\Cookie;
+use GuzzleHttp\Client as HTTP;
 
 class Auth
 {
     const REFRESH_TOKEN = 'refresh_token';
     public $http;
-    protected $baseUrl;
 
     /**
      * Auth constructor.
-     * @param ApiConsumer $client
-     * @param string $url
+     * @param HTTP $client
      */
-    public function __construct(ApiConsumer $client, string $url)
+    public function __construct(HTTP $client)
     {
         $this->http = $client;
-        $this->baseUrl = $url;
     }
 
     /**
@@ -37,9 +34,9 @@ class Auth
     public function attemptLogin(Client $client, User $user, string $password, $scopes = null)
     {
         try {
-            return $this->getToken($client, 'password', [
+            return $this->getTokenProxy($client, 'password', [
                 'username' => $user->email,
-                'password' => (string) $password,
+                'password' => (string)$password,
                 'scopes' => $scopes
             ]);
         } catch (\Exception $e) {
@@ -60,7 +57,6 @@ class Auth
     public function attemptRefresh(Client $client, Request $request)
     {
         $refreshToken = $request->cookie(self::REFRESH_TOKEN);
-
         return $this->getTokenProxy($client, self::REFRESH_TOKEN, [
             'refresh_token' => $refreshToken
         ]);
@@ -90,7 +86,7 @@ class Auth
     {
         $data = $this->buildParams($client, $type, $data);
         //Request behind an internal api consumer
-        $response = $this->http->post("{$this->baseUrl}/oauth/token", [
+        $response = $this->http->post("oauth/token", [
             'allow_redirects' => false,
             'form_params' => $data,
         ]);
@@ -101,23 +97,24 @@ class Auth
 
         $data = json_decode((string)$response->getBody(), true);
 
-        $this->generateHttpOnlyCookie($data);
-
         return [
             'access_token' => $data['access_token'],
-            'expires_in' => $data['expires_in']
+            'expires_in' => $data['expires_in'],
+            'refresh_token' => $data['refresh_token']
         ];
     }
 
     /**
      * Create a refresh token inside an Http Only Cookie
-     * @param $data
+     * @param array $data
+     * @return Cookie
      */
-    protected function generateHttpOnlyCookie(array $data): void
+    public function generateHttpOnlyCookie(array $data): Cookie
     {
-        Cookie::queue(
+        $refreshToken = $data[self::REFRESH_TOKEN];
+        return cookie(
             self::REFRESH_TOKEN,
-            $data['refresh_token'],
+            $refreshToken,
             864000,
             null,
             null,

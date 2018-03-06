@@ -4,9 +4,8 @@ namespace App\Providers;
 
 use App\Services\Auth;
 use GuzzleHttp\Client;
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Laravel\Passport\Passport;
-use Optimus\ApiConsumer\Facade\ApiConsumer;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -42,7 +41,9 @@ class AuthServiceProvider extends ServiceProvider
          */
             Auth::class, function () {
 
-            return new Auth((new ApiConsumer()), env('APP_URL'));
+            return new Auth((new Client([
+                'base_uri' => env('APP_URL')
+            ])));
         });
     }
 }

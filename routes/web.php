@@ -12,21 +12,4 @@
 */
 
 //Main Site
-Route::get('/', function () {
-    return view('index');
-});
-
-//Admin
-Route::get('/admin', 'HomeController@index')->name('home');
-
-Route::get('/register', function (){
-    return redirect()->route('home');
-});
-
-Route::get('/login', function (){
-    return redirect()->route('home');
-});
-
-
-
-//Auth::routes();
+Route::get('{all}', 'HomeController@index')->where(['all' => '.*']);

@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                I am only visible once you log in. This is a VUW SPA. The login is handled by Laravel
+                User dashboard. Hello User name
             </div>
         </div>
     </div>
@@ -10,9 +10,25 @@
 
 
 <script>
+    import {mapGetters} from 'vuex'
+
     export default {
+        computed: mapGetters({
+            token: 'token',
+        }),
+        data(){
+            return {}
+        },
         mounted() {
-            console.log('Only see this once logged in')
+            //get the user using the token that should be store in localStorage
+        },
+        beforeRouteEnter (to, from, next) {
+            next(vm => {
+                if (typeof vm.token !== 'undefined' &&  vm.token.length > 10){
+                    next('login')
+                }
+                next()
+            })
         }
     }
 </script>
