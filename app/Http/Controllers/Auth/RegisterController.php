@@ -94,8 +94,9 @@ class RegisterController extends Controller
     /**
      * Handle a registration request for the application.
      *
-     * @param  Request  $request
+     * @param  Request $request
      * @return \Illuminate\Http\Response
+     * @throws \Exception
      */
     public function register(Request $request)
     {
@@ -105,7 +106,7 @@ class RegisterController extends Controller
         $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
         //TODO decide the scopes
         $response = $this->auth->attemptLogin($client, $user, $request->get('password'), null);
-        if (is_array($response)) {
+        if ($response['status'] === 200) {
             $cookie = $this->auth->generateHttpOnlyCookie($response);
             unset($response['refresh_token']);
             return $this->registered($request, $user) ?: response()->json(array_merge([
@@ -114,6 +115,6 @@ class RegisterController extends Controller
             ], $response))->cookie($cookie);
         }
 
-        return response()->json($response, 422);
+        return response()->json($response, $response['status']);
     }
 }

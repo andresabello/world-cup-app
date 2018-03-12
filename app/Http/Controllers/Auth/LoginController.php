@@ -42,7 +42,11 @@ class LoginController extends Controller
     {
         $this->auth = $auth;
         $this->authClient = $authClient;
-        $this->middleware('api')->except('logout');
+    }
+
+    public function check(Request $request)
+    {
+        return response()->json($request->all(), 200);
     }
 
     /**
@@ -68,24 +72,23 @@ class LoginController extends Controller
      *
      * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
+     * @throws \Exception
      */
     protected function sendLoginResponse(Request $request)
     {
         $this->clearLoginAttempts($request);
-
-        if ($authenticated = $this->authenticated($request, $this->guard()->user())) {
-            $cookie = $this->auth->generateHttpOnlyCookie($authenticated);
-            unset($authenticated['refresh_token']);
+        $response = $this->authenticated($request, $this->guard()->user());
+        unset($response['refresh_token']);
+        unset($response['cookie']);
+        if ($response['status'] === 200) {
+            $cookie = $response['cookie'];
             return response()->json(array_merge([
                 'status' => true,
                 'message' => 'logged in'
-            ], $authenticated))->cookie($cookie);
+            ], $response))->cookie($cookie);
         }
 
-        return response()->json([
-            'status' => false,
-            'message' => 'unable to login, please try again'
-        ], 405);
+        return response()->json($response, $response['status']);
     }
 
     /**
@@ -94,12 +97,29 @@ class LoginController extends Controller
      * @param  \Illuminate\Http\Request $request
      * @param  mixed $user
      * @return mixed
+     * @throws \Exception
      */
     protected function authenticated(Request $request, $user)
     {
         $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
-        //TODO decide the scopes
         $response = $this->auth->attemptLogin($client, $user, $request->get('password'), null);
-        return $this->auth->generateHttpOnlyCookie($response);
+
+        if ($response['status'] === 200) {
+            return array_merge($response, [
+                'cookie' => $this->auth->generateHttpOnlyCookie($response)
+            ]);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get the guard to be used during authentication.
+     *
+     * @return \Illuminate\Contracts\Auth\StatefulGuard
+     */
+    protected function guard()
+    {
+        return Auth::guard('api')->user();
     }
 }

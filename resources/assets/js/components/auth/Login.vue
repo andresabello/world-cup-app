@@ -10,7 +10,7 @@
                         <p v-if="$route.query.redirect">
                             You need to login first.
                         </p>
-                        <pi-form :fields="fields" action="/register"></pi-form>
+                        <pi-form :fields="fields" action="/login"></pi-form>
                     </div>
                 </div>
             </div>

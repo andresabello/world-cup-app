@@ -29,7 +29,7 @@
         <env name="CACHE_DRIVER" value="file"/>
         <env name="SESSION_DRIVER" value="file"/>
         <env name="QUEUE_DRIVER" value="sync"/>
-        <env name="DB_CONNECTION" value="mysql_testing"/>
+        <env name="DB_CONNECTION" value="mysql"/>
         <env name="OAUTH_PASSWORD_CLIENT" value="yes"/>
         <env name="OAUTH_PASSWORD_SECRET" value="secret"/>
     </php>

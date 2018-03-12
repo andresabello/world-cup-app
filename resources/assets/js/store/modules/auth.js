@@ -1,4 +1,4 @@
-import auth from './../../api/classes/pi-auth'
+import Auth from './../../api/classes/pi-auth'
 import {env} from './../../env'
 
 // initial state
@@ -6,11 +6,9 @@ const state = {
     loggedIn: false,
     registerAction: `${env.url}/${env.api}/register`,
     loginAction: `${env.url}/${env.api}/login`,
-    token: '',
     registerForm: {
         name: {
             'message': 'Name',
-
             'type': 'text'
         },
         email: {
@@ -53,13 +51,12 @@ const getters = {
     loginForm: state => state.loginForm,
     registerAction: state => state.registerAction,
     loginAction: state => state.loginAction,
-    token: state => state.token,
 }
 
 // actions
 const actions = {
     setLoggedIn ({ commit }) {
-        auth.loggedIn(loggedIn => {
+        new Auth.loggedIn(loggedIn => {
             commit('setLoggedIn', loggedIn)
         })
     },
@@ -74,7 +71,7 @@ const mutations = {
         state.loggedIn = loggedIn
     },
     setToken (state, token) {
-        state.token = token
+        localStorage.setItem('token', token)
     }
 }
 

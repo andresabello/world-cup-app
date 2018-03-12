@@ -1,7 +1,7 @@
 export default class Auth {
 
-    constructor(storage) {
-        this.storage = storage
+    constructor() {
+        this.storage = localStorage
         this.loginUrl = '/login'
         this.logoutUrl = '/logout'
         this.registerUrl = '/register'

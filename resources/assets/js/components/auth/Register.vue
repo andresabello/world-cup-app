@@ -28,6 +28,7 @@
         methods: {
             success(response) {
                 let vm = this
+                localStorage.setItem('token', response.access_token)
                 vm.setToken(response.access_token)
                 setTimeout(() =>  {
                     vm.$router.push({

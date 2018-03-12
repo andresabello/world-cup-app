@@ -1,8 +1,8 @@
-import notification from './../../api/classes/pi-notify'
+import Notify from '../../api/classes/pi-notify'
 
 // initial state
 const state = {
-    notification: notification,
+    notification: new Notify(),
     element: document,
     message: '',
     type: 'success',
@@ -21,9 +21,15 @@ const getters = {
 
 // actions
 const actions = {
-     notify ({ commit }, message) {
-         commit('setMessage', message)
-         commit('trigger')
+     notify ({ commit }, { message, type = 'success', time = '3000', primary = true }) {
+         return new Promise((resolve, reject) => {
+             commit('setMessage', message)
+             commit('setType', type)
+             commit('setTime', time)
+             commit('setPrimary', primary)
+             commit('trigger')
+             resolve()
+         });
     },
     set ({ commit }, element) {
          switch (element.key) {
@@ -55,11 +61,14 @@ const mutations = {
     setMessage (state, message) {
         state.message = message
     },
-    seType(state, type) {
+    setType(state, type) {
         state.type = type
     },
-    seTime(state, time) {
+    setTime(state, time) {
         state.time = time
+    },
+    setPrimary(state, primary) {
+        state.primary = primary
     },
     togglePrimary(state) {
         state.primary = !state.primary

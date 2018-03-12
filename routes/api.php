@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware('api')->group(function () {
     //login
     Route::post('login', 'Auth\LoginController@login');
     Route::post('register', 'Auth\RegisterController@register');
@@ -24,9 +24,7 @@ Route::prefix('v1')->group(function () {
 
     //once logged in
     Route::middleware('auth:api')->group(function () {
-        Route::get('hello', function (){
-            return 'very secure';
-        });
+        Route::get('auth/check', 'Auth\LoginController@check');
     });
 });
 
