@@ -8,6 +8,7 @@ use App\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
 
@@ -72,6 +73,7 @@ class RegisterController extends Controller
         return Validator::make($data, [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'phone_number' => 'required|string|min:6',
             'password' => 'required|string|min:6|confirmed',
         ]);
     }
@@ -88,6 +90,7 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
+            'phone_number' => $data['phone_number'],
         ]);
     }
 
@@ -102,19 +105,22 @@ class RegisterController extends Controller
     {
         $this->validator($request->all())->validate();
         event(new Registered($user = $this->create($request->all())));
-        $this->guard()->login($user);
         $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
         //TODO decide the scopes
         $response = $this->auth->attemptLogin($client, $user, $request->get('password'), null);
         if ($response['status'] === 200) {
-            $cookie = $this->auth->generateHttpOnlyCookie($response);
-            unset($response['refresh_token']);
             return $this->registered($request, $user) ?: response()->json(array_merge([
                 'status' => true,
-                'message' => 'registered'
-            ], $response))->cookie($cookie);
+                'message' => 'registered',
+                'user' => $user
+            ], $response));
         }
 
         return response()->json($response, $response['status']);
+    }
+
+    protected function guard()
+    {
+        return Auth::guard('api');
     }
 }

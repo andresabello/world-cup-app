@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Services\Auth;
+use App\User;
+use Illuminate\Support\Facades\Auth;
+use App\Services\Auth as AuthService;
 use App\Services\AuthClient;
+use App\Services\Users;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -35,10 +38,10 @@ class LoginController extends Controller
     /**
      * Create a new controller instance.
      *
-     * @param Auth $auth
+     * @param AuthService $auth
      * @param AuthClient $authClient
      */
-    public function __construct(Auth $auth, AuthClient $authClient)
+    public function __construct(AuthService $auth, AuthClient $authClient)
     {
         $this->auth = $auth;
         $this->authClient = $authClient;
@@ -46,9 +49,71 @@ class LoginController extends Controller
 
     public function check(Request $request)
     {
-        return response()->json($request->all(), 200);
+        $user = $request->user('api');
+
+        return response()->json([
+            'user' => $user
+        ], 200);
     }
 
+
+    /**
+     * Handle a login request to the application.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     * @throws \Exception
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function login(Request $request)
+    {
+        $this->validateLogin($request);
+
+        // If the class is using the ThrottlesLogins trait, we can automatically throttle
+        // the login attempts for this application. We'll key this by the username and
+        // the IP address of the client making these requests into this application.
+        if ($this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
+        }
+
+        if ($this->attemptLogin($request)) {
+            return $this->sendLoginResponse($request);
+        }
+
+        return $this->requestPasswordGrant($request);
+    }
+
+    /**
+     * Attempt to log the user into the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return bool
+     */
+    protected function attemptLogin(Request $request)
+    {
+        return $this->guard()->check(
+            $this->credentials($request), $request->filled('remember')
+        );
+    }
+
+
+    public function requestPasswordGrant($request)
+    {
+        $response = $this->authenticated($request, $this->guard()->user());
+
+        if ($response['status'] === 200) {
+            $this->clearLoginAttempts($request);
+            return response()->json(array_merge([
+                'status' => true,
+                'message' => 'logged in'
+            ], $response));
+        }
+
+        $this->incrementLoginAttempts($request);
+        return response()->json($response, $response['status']);
+    }
     /**
      * Log the user out of the application.
      *
@@ -68,30 +133,6 @@ class LoginController extends Controller
     }
 
     /**
-     * Send the response after the user was authenticated.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     * @throws \Exception
-     */
-    protected function sendLoginResponse(Request $request)
-    {
-        $this->clearLoginAttempts($request);
-        $response = $this->authenticated($request, $this->guard()->user());
-        unset($response['refresh_token']);
-        unset($response['cookie']);
-        if ($response['status'] === 200) {
-            $cookie = $response['cookie'];
-            return response()->json(array_merge([
-                'status' => true,
-                'message' => 'logged in'
-            ], $response))->cookie($cookie);
-        }
-
-        return response()->json($response, $response['status']);
-    }
-
-    /**
      * The user has been authenticated.
      *
      * @param  \Illuminate\Http\Request $request
@@ -101,25 +142,15 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
-        $response = $this->auth->attemptLogin($client, $user, $request->get('password'), null);
-
-        if ($response['status'] === 200) {
-            return array_merge($response, [
-                'cookie' => $this->auth->generateHttpOnlyCookie($response)
-            ]);
+        if (!$user) {
+            $user = User::where('email', $request->get('email'))->first();
         }
-
-        return $response;
+        $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
+        return array_merge(['user' => $user], $this->auth->attemptLogin($client, $user, $request->get('password'), null));
     }
 
-    /**
-     * Get the guard to be used during authentication.
-     *
-     * @return \Illuminate\Contracts\Auth\StatefulGuard
-     */
     protected function guard()
     {
-        return Auth::guard('api')->user();
+        return auth()->guard('api');
     }
 }

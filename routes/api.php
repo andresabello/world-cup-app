@@ -24,7 +24,9 @@ Route::prefix('v1')->middleware('api')->group(function () {
 
     //once logged in
     Route::middleware('auth:api')->group(function () {
-        Route::get('auth/check', 'Auth\LoginController@check');
+        Route::get('settings', 'API\ProfileController@index');
+        Route::post('auth/check', 'Auth\LoginController@check');
+        Route::post('settings', 'API\ProfileController@update');
     });
 });
 

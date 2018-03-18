@@ -36,11 +36,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(/**
-         * @return Auth
-         */
-            Auth::class, function () {
-
+        $this->app->bind(Auth::class, function () {
             return new Auth((new Client([
                 'base_uri' => env('APP_URL')
             ])));

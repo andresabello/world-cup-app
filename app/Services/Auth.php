@@ -41,7 +41,7 @@ class Auth
                 'password' => (string)$password,
                 'scopes' => $scopes
             ]);
-        }catch (\Exception $exception) {
+        } catch (\Exception $exception) {
             return [
                 'status' => $exception->getCode(),
                 'message' => (string)$exception->getMessage()
@@ -56,17 +56,16 @@ class Auth
      * @param Client $client
      * @param Request $request
      * @return array
-     * @throws \Exception
      */
     public function attemptRefresh(Client $client, Request $request): array
     {
         try {
             return array_merge([
                 'status' => 200
-            ],$this->getTokenProxy($client, 'refresh_token', [
-                'refresh_token' => $request->cookie('refresh_token')
+            ], $this->getTokenProxy($client, 'refresh_token', [
+                'refresh_token' => $request->get('refresh_token')
             ]));
-        }catch (\Exception $exception) {
+        } catch (\Exception $exception) {
             return [
                 'status' => $exception->getCode(),
                 'message' => $exception->getMessage()
@@ -98,7 +97,7 @@ class Auth
         return cookie(
             self::REFRESH_TOKEN,
             $refreshToken,
-            864000,
+            1440, //1 day 60 * 24 * 1
             null,
             null,
             false,
@@ -112,9 +111,9 @@ class Auth
      * @return array
      * @throws \Exception
      */
-    public function checkCookieToken(Client $client, Request $request): array
+    public function checkRefreshToken(Client $client, Request $request): array
     {
-        if ($request->hasCookie(self::REFRESH_TOKEN)) {
+        if ($request->has(self::REFRESH_TOKEN)) {
             return $this->attemptRefresh($client, $request);
         }
 
@@ -189,6 +188,7 @@ class Auth
             'message' => 'success',
             'access_token' => $responseData['access_token'],
             'expires_in' => $responseData['expires_in'],
+            'refresh_expires_in' => 14400,
             'refresh_token' => $responseData['refresh_token']
         ];
     }

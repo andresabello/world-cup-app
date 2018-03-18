@@ -54,35 +54,45 @@ const router = new VueRouter({
     ]
 });
 
-router.beforeEach((to, from, next) => {
-        // Look at all routes
-        router.options.routes.forEach((route) => {
-            // If this is the current route and it's secure
-            if (to.matched[0].path === route.path && route.secure) {
-                // Verify that the user isn't logged in
-                let config = {
-                    headers: {'Authorization': "Bearer " + localStorage.getItem('token')}
-                };
-
-                window.axios.get(`${env.url}/${env.api}/auth/check`, config)
-                    .then((response) => {
-                        console.log(response)
-                        if (response.data.message === '') {
-
-                            localStorage.setItem('token', response.data.access_token    )
-                            next()
-                        }
-                    })
-                    .catch( (error) => {
-                        // // store.dispatch('notify',{message:error.response.data.message, type:'danger'})
-                        console.log(error.response.data.message)
-                        next('login')
-                    })
-            }
-        })
-
-        next()
-});
+// router.beforeEach((to, from, next) => {
+//         // Look at all routes
+//         router.options.routes.forEach((route) => {
+//             // If this is the current route and it's secure
+//             if (to.matched[0].path === route.path && route.secure) {
+//                 // Verify that the user isn't logged in
+//                 let config = {
+//                     headers: {
+//                         'Authorization': "Bearer " + router.app.$store.state.token,
+//                         'Accept': 'application/json'
+//                     }
+//                 }
+//
+//                 let url = `${env.url}/${env.api}/auth/check`
+//                 let data = {
+//                     getUser: typeof store.state.Auth.user !== 'undefined'
+//                     && store.state.Auth.user.email === ''
+//                 }
+//
+//                 window.axios.post(url, data, config)
+//                     .then((response) => {
+//                         console.log(response.data.user)
+//                         if (response.data.message === '') {
+//                             router.app.$store.dispatch('setToken', response.data.access_token)
+//                             if (response.data.user.name !== ''){
+//                                 router.app.$store.dispatch('setUser', response.data.user)
+//                             }
+//                             next()
+//                         }
+//                     })
+//                     .catch( ({response}) => {
+//                         console.log(response)
+//                         next('login')
+//                     })
+//             }
+//         })
+//
+//         next()
+// });
 
 
 /**

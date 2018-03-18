@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\User;
 use Closure;
+use App\Services\Users;
 use App\Services\AuthClient;
 use App\Services\Auth as AuthService;
 use Illuminate\Auth\AuthenticationException;
@@ -18,14 +20,21 @@ class Authenticate
      * @var \Illuminate\Contracts\Auth\Factory
      */
     protected $auth;
+
     /**
      * @var AuthService
      */
     protected $authService;
+
     /**
      * @var AuthClient
      */
     protected $authClient;
+
+    /**
+     * @var Users
+     */
+    protected $users;
 
     /**
      * Create a new middleware instance.
@@ -33,12 +42,14 @@ class Authenticate
      * @param  \Illuminate\Contracts\Auth\Factory $auth
      * @param AuthService $authService
      * @param AuthClient $authClient
+     * @param Users $users
      */
-    public function __construct(Auth $auth, AuthService $authService, AuthClient $authClient)
+    public function __construct(Auth $auth, AuthService $authService, AuthClient $authClient, Users $users)
     {
         $this->auth = $auth;
         $this->authClient = $authClient;
         $this->authService = $authService;
+        $this->users = $users;
     }
 
     /**
@@ -48,26 +59,22 @@ class Authenticate
      * @param  \Closure $next
      * @param  string[] ...$guards
      * @return mixed
-     *
+     * @throws \Exception
      */
     public function handle($request, Closure $next, ...$guards)
     {
-        try {
-            $response = $this->authenticate($guards, $request);
+        if (!$request->user('api')) {
+            $response = $this->authenticate($request);
             if ($response['status'] === 200) {
-                $cookie = $this->authService->generateHttpOnlyCookie($response);
-                unset($response['cookie']);
-                unset($response['refresh_token']);
-                unset($response['message']);
+                $user = auth()->guard('api')->user() ?: $request->has('email') ? User::where('email', $request->get('email'))->first() : $this->auth->guard('api');
                 return response()->json(array_merge([
                     'status' => 200,
-                    'message' => 'refreshed'
-                ], $response))->cookie($cookie);
+                    'message' => 'refreshed',
+                    'user' => $user
+                ], $response));
             }
-        }catch (\Exception $exception){
-            return response()->json([
-                'message' => $exception->getMessage()
-            ], 401);
+
+            return response()->json($response['message'], $response['status']);
         }
 
         return $next($request);
@@ -76,36 +83,20 @@ class Authenticate
     /**
      * Determine if the user is logged in to any of the given guards.
      *
-     * @param  array $guards
      * @param Request $request
      * @return mixed
-     *
-     * @throws AuthenticationException
      * @throws \Exception
      */
-    protected function authenticate(array $guards, Request $request)
+    protected function authenticate(Request $request)
     {
-        if (empty($guards)) {
-            return $this->auth->authenticate();
+        $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
+        $response = $this->authService->checkRefreshToken($client, $request);
+        if ($response['status'] !== 200) {
+            $user = auth()->guard('api')->user() ?: $request->has('email') ? User::where('email', $request->get('email'))->first() : $this->auth->guard('api');
+            $message = $response['message'] ?? 'Unauthenticated';
+            Log::error($message);
+            return array_merge($response, ['message' => $message, 'status' => $response['status'], 'user' => $user]);
         }
-
-        foreach ($guards as $guard) {
-            if ($this->auth->guard($guard)->check()) {
-                return $this->auth->shouldUse($guard);
-            }
-        }
-
-        if (!$this->auth->guard('api')->user()) {
-            $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
-            $response = $this->authService->checkCookieToken($client, $request);
-            if ($response['status'] !== 200) {
-                $message = $response['message'] ?? 'Unauthenticated';
-                Log::error($message);
-                throw new AuthenticationException($message, $guards);
-            }
-            return $response;
-        }
-
-        throw new AuthenticationException('Unauthenticated.', $guards);
+        return $response;
     }
 }
