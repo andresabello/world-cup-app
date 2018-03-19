@@ -3,6 +3,7 @@
 namespace App\Services;
 
 
+use App\OAuthProvider;
 use App\User;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
@@ -14,15 +15,23 @@ use GuzzleHttp\Client as HTTP;
 class Auth
 {
     const REFRESH_TOKEN = 'refresh_token';
-    public $http;
+
+    /**
+     * @var Users
+     */
+    protected $users;
+
+    protected $http;
 
     /**
      * Auth constructor.
      * @param HTTP $client
+     * @param Users $users
      */
-    public function __construct(HTTP $client)
+    public function __construct(HTTP $client, Users $users)
     {
         $this->http = $client;
+        $this->users = $users;
     }
 
     /**
@@ -117,6 +126,14 @@ class Auth
             return $this->attemptRefresh($client, $request);
         }
 
+        if ($request->has('user_token')) {
+            $provider = OAuthProvider::find($request->get('user_token'));
+            if ($provider) {
+                $user = $provider->user;
+                return $this->attemptLogin($client, $user, 'dolphins');
+            }
+        }
+
         return [
             'status' => 401,
             'message' => 'Please logout and log back in'
@@ -182,14 +199,18 @@ class Auth
         }
 
         $responseData = json_decode((string)$response->getBody(), true);
-
-        return [
+        $response = [
             'status' => $response->getStatusCode(),
             'message' => 'success',
             'access_token' => $responseData['access_token'],
             'expires_in' => $responseData['expires_in'],
             'refresh_expires_in' => 14400,
-            'refresh_token' => $responseData['refresh_token']
         ];
+
+        if (isset($responseData['refresh_token'])) {
+            $response['refresh_token'] = $responseData['refresh_token'];
+        }
+
+        return $response;
     }
 }

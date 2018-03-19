@@ -19,13 +19,18 @@ Route::prefix('v1')->middleware('api')->group(function () {
     Route::post('reset', 'Auth\ResetPasswordController@reset');
     Route::post('forgot', 'Auth\ForgotPasswordController@forgot');
     Route::post('logout', 'Auth\LoginController@logout');
+    Route::get('google/auth', 'Auth\LoginController@redirectToProvider');
+    Route::get('google/callback', 'Auth\LoginController@handleProviderCallback');
     //register
     //logout
 
     //once logged in
     Route::middleware('auth:api')->group(function () {
-        Route::get('settings', 'API\ProfileController@index');
+        //auth
         Route::post('auth/check', 'Auth\LoginController@check');
+
+        //user settings
+        Route::get('settings', 'API\ProfileController@index');
         Route::post('settings', 'API\ProfileController@update');
     });
 });

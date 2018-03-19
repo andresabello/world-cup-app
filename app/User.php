@@ -2,8 +2,11 @@
 
 namespace App;
 
+use Laravel\Passport\Bridge\AccessToken;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Passport\Passport;
+use Laravel\Passport\Token;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 
@@ -25,6 +28,24 @@ class User extends Authenticatable
      *
      * @var array
      */
-    protected $hidden = ['remember_token',
-    ];
+    protected $hidden = ['remember_token', 'password'];
+
+
+    /**
+     * The roles that belong to the user.
+     */
+    public function
+    authProviders()
+    {
+        return $this->hasMany(OAuthProvider::class);
+    }
+
+    /**
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function accessTokens()
+    {
+        return $this->hasMany(Token::class);
+    }
 }

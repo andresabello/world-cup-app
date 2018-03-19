@@ -63,10 +63,16 @@ class Authenticate
      */
     public function handle($request, Closure $next, ...$guards)
     {
+        //is this a a socialite provider?
+        //if so then auth with provider
+        // refresh if necessary
+        // return user from provider
+
+
         if (!$request->user('api')) {
             $response = $this->authenticate($request);
             if ($response['status'] === 200) {
-                $user = auth()->guard('api')->user() ?: $request->has('email') ? User::where('email', $request->get('email'))->first() : $this->auth->guard('api');
+                $user = $this->users->getAuthUser();
                 return response()->json(array_merge([
                     'status' => 200,
                     'message' => 'refreshed',
@@ -76,6 +82,7 @@ class Authenticate
 
             return response()->json($response['message'], $response['status']);
         }
+
 
         return $next($request);
     }
@@ -91,12 +98,14 @@ class Authenticate
     {
         $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
         $response = $this->authService->checkRefreshToken($client, $request);
+
         if ($response['status'] !== 200) {
-            $user = auth()->guard('api')->user() ?: $request->has('email') ? User::where('email', $request->get('email'))->first() : $this->auth->guard('api');
+            $user = $this->users->getAuthUser();
             $message = $response['message'] ?? 'Unauthenticated';
             Log::error($message);
             return array_merge($response, ['message' => $message, 'status' => $response['status'], 'user' => $user]);
         }
+
         return $response;
     }
 }

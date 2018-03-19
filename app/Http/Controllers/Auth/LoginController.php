@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\User;
-use Illuminate\Support\Facades\Auth;
-use App\Services\Auth as AuthService;
-use App\Services\AuthClient;
+use App\OAuthProvider;
 use App\Services\Users;
+use App\Services\AuthClient;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Services\Auth as AuthService;
+use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
 class LoginController extends Controller
@@ -56,6 +57,60 @@ class LoginController extends Controller
         ], 200);
     }
 
+    /**
+     * Redirect the user to the GitHub authentication page.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function redirectToProvider()
+    {
+        return Socialite::driver('google')
+            ->stateless()
+//            ->scopes(['read:user', 'public_repo'])
+//            ->setScopes(['read:user', 'public_repo']) //overwrite
+            ->redirect();
+    }
+
+    /**
+     * Obtain the user information from GitHub.
+     *
+     * @param Users $users
+     * @return \Illuminate\Http\Response
+     */
+    public function handleProviderCallback(Users $users)
+    {
+        $user = Socialite::driver('google')
+            ->stateless()
+            ->user();
+
+        //check if user in database and use that
+        $email = $user->getEmail();
+        $name = $user->getName();
+
+        $authUser = $users->getAuthUser(null, $email);
+
+
+        //or generate a random id
+        if (!$authUser) {
+            $authUser = User::create([
+                'name' =>  $name,
+                'email' => $email,
+                'password' => $users->getDummyPassword($email, $name)
+            ]);
+        }
+
+        $oAuthProvider = OAuthProvider::create([
+            'active' => true,
+            'name' => 'google',
+            'oauth_id' => $user->getId(),
+            'access_token' => $user->token,
+            'refresh_token' => $user->refreshToken,
+            'expires_in' => $user->expiresIn,
+            'user_id' => $authUser->id
+        ]);
+
+        return redirect(env('FRONT_END_URL') . '/settings?user_token=' . $oAuthProvider->id);
+    }
 
     /**
      * Handle a login request to the application.
@@ -88,7 +143,7 @@ class LoginController extends Controller
     /**
      * Attempt to log the user into the application.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return bool
      */
     protected function attemptLogin(Request $request)
@@ -114,10 +169,11 @@ class LoginController extends Controller
         $this->incrementLoginAttempts($request);
         return response()->json($response, $response['status']);
     }
+
     /**
      * Log the user out of the application.
      *
-     * @param  Request  $request
+     * @param  Request $request
      * @return \Illuminate\Http\Response
      */
     public function logout(Request $request)
@@ -146,11 +202,14 @@ class LoginController extends Controller
             $user = User::where('email', $request->get('email'))->first();
         }
         $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
-        return array_merge(['user' => $user], $this->auth->attemptLogin($client, $user, $request->get('password'), null));
+        return array_merge(['user' => $user],
+            $this->auth->attemptLogin($client, $user, $request->get('password'), null));
     }
 
     protected function guard()
     {
         return auth()->guard('api');
     }
+
+
 }
