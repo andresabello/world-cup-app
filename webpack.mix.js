@@ -9,10 +9,13 @@ let mix = require('laravel-mix');
  | for your Laravel application. By default, we are compiling the Sass
  | file for the application as well as bundling up all the JS files.
  |
+
  */
 
 // language=ECMAScript 6
-mix.js('resources/assets/js/app.js', 'public/js')
-    .extract(['vue', 'vue-router'])
-    .sass('resources/assets/sass/app.scss', 'public/css')
-    .sourceMaps()
+// mix.js('resources/assets/js/app.js', 'public/js')
+//     .extract(['vue', 'vue-router'])
+//     .sass('resources/assets/sass/app.scss', 'public/css')
+//     .sourceMaps()
+
+mix.copyDirectory('resources/assets/img', 'public/img');

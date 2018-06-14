@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 |
 */
 Route::prefix('v1')->middleware('api')->group(function () {
-    //login
     Route::post('login', 'Auth\LoginController@login');
     Route::post('register', 'Auth\RegisterController@register');
     Route::post('reset', 'Auth\ResetPasswordController@reset');
@@ -21,10 +20,11 @@ Route::prefix('v1')->middleware('api')->group(function () {
     Route::post('logout', 'Auth\LoginController@logout');
     Route::get('google/auth', 'Auth\LoginController@redirectToProvider');
     Route::get('google/callback', 'Auth\LoginController@handleProviderCallback');
-    //register
-    //logout
 
-    //once logged in
+    Route::apiResource('league', 'API\LeagueController');
+    Route::apiResource('groups', 'API\GroupController');
+    Route::apiResource('news', 'API\NewsController');
+
     Route::middleware('auth:api')->group(function () {
         //auth
         Route::post('auth/check', 'Auth\LoginController@check');

@@ -96,6 +96,7 @@ class Authenticate
      */
     protected function authenticate(Request $request)
     {
+        $oauthClient = $request;
         $client = $this->authClient->get('password', env('OAUTH_PASSWORD_CLIENT'));
         $response = $this->authService->checkRefreshToken($client, $request);
 
