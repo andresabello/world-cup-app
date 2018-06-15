@@ -24,6 +24,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
     Route::apiResource('league', 'API\LeagueController');
     Route::apiResource('groups', 'API\GroupController');
     Route::apiResource('news', 'API\NewsController');
+    Route::apiResource('teams', 'API\TeamController');
 
     Route::middleware('auth:api')->group(function () {
         //auth

@@ -1,20 +1,23 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use App\Team;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class TeamController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param Team $team
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Team $team)
     {
-        //
+        $teams = $team->pluck('name', 'id');
+        return response()->json(compact('teams'));
     }
 
     /**
