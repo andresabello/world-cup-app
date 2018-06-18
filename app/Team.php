@@ -25,7 +25,8 @@ class Team extends Model
         return $this->belongsToMany(News::class, 'news_teams');
     }
 
-    public function group(){
+    public function group()
+    {
         return $this->belongsTo(Group::class);
     }
 
@@ -44,9 +45,61 @@ class Team extends Model
         return $this->hasMany(Match::class, 'winner_id');
     }
 
-    public function squad()
+    public function squads()
     {
         return $this->hasMany(Squad::class);
+    }
+
+    public function tournaments()
+    {
+        return $this->belongsToMany(Tournament::class);
+    }
+
+    public function scopeTranslatedName($query, $name)
+    {
+        $translated = $this->translated();
+        if (key_exists($name, $translated)) {
+            return $query->where('name', $translated[$name])->first();
+        }
+    }
+
+
+    protected function translated()
+    {
+        return [
+            'Russia' => 'Rusia',
+            'Egypt' => 'Egipto',
+            'Uruguay' => 'Uruguay',
+            'Saudi Arabia' => 'Arabia Saudita',
+            'Portugal' => 'Portugal',
+            'Morocco' => 'Marruecos',
+            'Iran' => 'Iran',
+            'Spain' => 'Espana',
+            'France' => 'Francia',
+            'Australia' => 'Australia',
+            'Peru' => 'Peru',
+            'Denmark' => 'Dinamarca',
+            'Argentina' => 'Argentina',
+            'Iceland' => 'Islandia',
+            'Croatia' => 'Croacia',
+            'Nigeria' => 'Nigeria',
+            'Costa Rica' => 'Costa Rica',
+            'Serbia' => 'Serbia',
+            'Brazil' => 'Brasil',
+            'Switzerland' => 'Suiza',
+            'Germany' => 'Alemania',
+            'Mexico' => 'Mexico',
+            'Sweden' => 'Suecia',
+            'Korea Republic' => 'Corea Del Sur',
+            'Belgium' => 'Belgica',
+            'Panama' => 'Panama',
+            'Tunisia' => 'Tunez',
+            'England' => 'Inglaterra',
+            'Colombia' => 'Colombia',
+            'Japan' => 'Japon',
+            'Senegal' => 'Senegal',
+            'Poland' => 'Polonia',
+        ];
     }
 
 }

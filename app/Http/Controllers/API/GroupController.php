@@ -16,7 +16,7 @@ class GroupController extends Controller
      */
     public function index(Group $group)
     {
-        $groups = $group->with(['teams', 'matches.goals'])->get();
+        $groups = $group->with(['teams.awayMatches', 'teams.homeMatches', 'matches.goals'])->get();
         return response()->json(compact('groups'));
     }
 

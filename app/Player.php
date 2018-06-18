@@ -13,7 +13,7 @@ class Player extends Model
         'weight',
         'age',
         'photo',
-        'team_id',
+        'squad_id',
         'club_id'
     ];
 
@@ -35,6 +35,11 @@ class Player extends Model
     public function assists()
     {
         return $this->hasMany(Goal::class, 'assist_id');
+    }
+
+    public function squads()
+    {
+        $this->hasMany(Squad::class);
     }
 
 

@@ -16,7 +16,7 @@ class TeamController extends Controller
      */
     public function index(Team $team)
     {
-        $teams = $team->pluck('name', 'id');
+        $teams = $team->select(['name', 'id', 'group_id'])->get()->toArray();
         return response()->json(compact('teams'));
     }
 

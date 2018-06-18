@@ -53,7 +53,7 @@ class getFutbolredNews extends Command
                 'description' => !empty($new['description']) ? $new['description'] : null,
                 'published_at' => Carbon::createFromFormat('D, j M Y H:i:s O', $new['pubDate'])->toDateTimeString(),
                 'added_on' => Carbon::now()->toDateTimeString(),
-                'source' => $new['link'],
+                '   source' => $new['link'],
                 'image' => isset($new['enclosure']) ? $new['enclosure']['@attributes']['url'] : null,
                 'source_name' => 'Futbolred'
             ]);

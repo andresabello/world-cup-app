@@ -48,6 +48,7 @@ class getNews extends Command
         $allTeams->each(function ($team) use($news, $appNews){
             $responseNews = collect($news->fetchEverything("{$team->name} mundial rusia 2018")['articles']);
             $responseNews->each(function ($new) use ($team, $appNews){
+                if (!$appNews->where('title', $new['title'])->exists()) {
                     $created = $appNews->create([
                         'title' => $new['title'],
                         'description' => !empty($new['description']) ? $new['description'] : null,
@@ -58,7 +59,8 @@ class getNews extends Command
                         'source_name' => $new['source']['name']
                     ]);
 
-                $created->teams()->attach($team->id);
+                    $created->teams()->attach($team->id);
+                }
             });
         });
     }

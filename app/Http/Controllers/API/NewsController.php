@@ -21,14 +21,7 @@ class NewsController extends Controller
     {
         $team = $request->query('team', null);
         $team = $teamApp->where('slug', str_slug($team))->first();
-        if ($team) {
-            $news = $news->with(['teams'])->whereHas('teams', function ($teams) use($team){
-                $teams->where('id', $team->id);
-            })->get();
-        }else {
-            $news = $news->with(['teams'])->get();
-        }
-
+        $news = $this->getNews($news, $team);
         return response()->json(compact('news'));
     }
 
@@ -45,7 +38,7 @@ class NewsController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -56,7 +49,7 @@ class NewsController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\News  $news
+     * @param  \App\News $news
      * @return \Illuminate\Http\Response
      */
     public function show(News $news)
@@ -68,7 +61,7 @@ class NewsController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\News  $news
+     * @param  \App\News $news
      * @return \Illuminate\Http\Response
      */
     public function edit(News $news)
@@ -79,8 +72,8 @@ class NewsController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\News  $news
+     * @param  \Illuminate\Http\Request $request
+     * @param  \App\News $news
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, News $news)
@@ -91,11 +84,28 @@ class NewsController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\News  $news
+     * @param  \App\News $news
      * @return \Illuminate\Http\Response
      */
     public function destroy(News $news)
     {
         //
+    }
+
+    /**
+     * @param News $news
+     * @param $team
+     * @param $amount
+     * @return \Illuminate\Contracts\Pagination\Paginator
+     */
+    protected function getNews(News $news, $team, int $amount = 10)
+    {
+        if ($team instanceof Team) {
+            return $news->with(['teams'])->whereHas('teams', function ($teams) use ($team) {
+                $teams->where('id', $team->id);
+            })->orderBy('published_at', 'DESC')->paginate($amount);
+        }
+
+        return $news->with(['teams'])->orderBy('published_at', 'DESC')->paginate($amount);
     }
 }
