@@ -19,3 +19,7 @@ public/js/
 bin/
 
 storage/players/
+
+resources/assets/\.DS_Store
+
+storage/\.DS_Store

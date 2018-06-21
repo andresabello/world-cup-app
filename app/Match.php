@@ -17,7 +17,8 @@ class Match extends Model
         'winner_id',
         'score',
         'score_et',
-        'score_pt'
+        'score_pt',
+        'finished'
     ];
 
     protected $dates = [

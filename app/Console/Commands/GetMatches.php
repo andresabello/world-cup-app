@@ -45,8 +45,8 @@ class GetMatches extends Command
     public function handle(LiveScores $liveScores, Group $group, Team $team)
     {
         $groups = $group->get();
-        $groups->each(function ($group) use($liveScores, $team){
-            switch($group->name) {
+        $groups->each(function ($group) use ($liveScores, $team) {
+            switch ($group->name) {
                 case 'Groupo A':
                     $groupNumber = 793;
                     break;
@@ -75,37 +75,65 @@ class GetMatches extends Command
                     $groupNumber = 793;
             }
             $matches = $liveScores->getPastMatches($groupNumber);
-            if(isset($matches['match'])) {
+            if (isset($matches['match'])) {
                 $matches = collect($matches['match']);
 //                dd($matches);
                 if ($matches->count()) {
-                    $matches->each(function ($match) use($team){
+                    $matches->each(function ($match) use ($team) {
                         $home = $match['home_name'];
                         $away = $match['away_name'];
+
                         $homeTeam = Team::translatedName($home);
                         $awayTeam = Team::translatedName($away);
 
-                        if ($homeTeam instanceof Team && $awayTeam instanceof Team) {
-                            $appMatch = Match::where('home_id', $homeTeam->id)->where('away_id', $awayTeam->id)->first();
-//                        dd($appMatch, $homeTeam, $awayTeam, $home, $away);
-                            $appMatch->score = $match['score'];
+                        if ($homeTeam instanceof Team && $awayTeam instanceof Team && $homeTeam !== $awayTeam) {
 
-                            if ($match['status'] === 'FINISHED') {
-                                $scoreArray = explode(' - ', $match['score']);
-                                rsort($scoreArray);
-                                if ($scoreArray[0] > $scoreArray[1]) {
-                                    $appMatch->winner_id = $homeTeam->id;
-                                }
+                            $appMatch = Match::where(function ($query) use ($awayTeam, $homeTeam) {
+                                $query->where('home_id', $homeTeam->id)
+                                    ->where('away_id', $awayTeam->id);
+                            })->orWhere(function($query) use($awayTeam, $homeTeam){
+                                $query->where('home_id', $awayTeam->id)
+                                    ->where('away_id', $homeTeam->id);
+                            })->first();
 
-                                if ($scoreArray[1] > $scoreArray[0]) {
-                                    $appMatch->winner_id = $awayTeam->id;
-                                }
+                            if ($homeTeam->id !== $appMatch->home_id) {
+                                $appMatch->home_id = $awayTeam->id;
+                                $appMatch->away_id = $homeTeam->id;
                                 $appMatch->save();
                             }
+//                            dd($appMatch);
+                            if ($appMatch->home_name === 'Espana' || $appMatch->away_team === 'Espana') {
+                                dd($appMatch, $match);
+                            }
 
-                        }else{
-                            logger($home .' '.$away . 'not recognize' . json_encode([$homeTeam->get(), $awayTeam->get()]));
+                            if ($appMatch) {
+
+                                $appMatch->score = $match['score'] ?? '0 - 0';
+
+                                if ($match['status'] === 'FINISHED') {
+                                    $scoreArray = explode(' - ', $match['score']);
+//                                    dd($scoreArray);
+//                                    rsort($scoreArray);
+
+                                    if ($scoreArray[0] > $scoreArray[1]) {
+                                        $appMatch->winner_id = $homeTeam->id;
+                                    }
+
+                                    if ($scoreArray[1] > $scoreArray[0]) {
+                                        $appMatch->winner_id = $awayTeam->id;
+                                    }
+                                    $appMatch->finished = 1;
+                                    $appMatch->save();
+                                }
+                            }
                         }
+                        logger(json_encode([
+                                'home_team' => $homeTeam->name ?? 'nada',
+                                'away_team' => $awayTeam->name ?? 'nada',
+                                'api_home' => $home,
+                                'api_away' => $away,
+                                'score' => $match
+                            ]));
                     });
                 }
             }
