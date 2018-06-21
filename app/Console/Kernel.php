@@ -2,8 +2,9 @@
 
 namespace App\Console;
 
-use App\Console\Commands\getFutbolredNews;
-use App\Console\Commands\getNews;
+use App\Console\Commands\GetFutbolredNews;
+use App\Console\Commands\GetMatches;
+use App\Console\Commands\GetNews;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -15,8 +16,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        getNews::class,
-        getFutbolredNews::class
+        GetNews::class,
+        getFutbolredNews::class,
+        GetMatches::class
     ];
 
     /**
@@ -29,6 +31,7 @@ class Kernel extends ConsoleKernel
     {
          $schedule->command('get:news')->hourly();
          $schedule->command('get:news-futbolred')->hourly();
+         $schedule->command('get:matches')->hourly();
     }
 
     /**

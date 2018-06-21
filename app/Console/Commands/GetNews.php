@@ -8,7 +8,7 @@ use App\News as AppNews;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-class getNews extends Command
+class GetNews extends Command
 {
     /**
      * The name and signature of the console command.

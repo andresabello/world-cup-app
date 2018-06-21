@@ -8,7 +8,7 @@ use App\Team;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-class getFutbolredNews extends Command
+class GetFutbolredNews extends Command
 {
     /**
      * The name and signature of the console command.
