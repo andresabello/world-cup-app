@@ -47,17 +47,19 @@ class GetFutbolredNews extends Command
         $futbolred = $news->fetchFutbolred();
         $team = $team->where('name', 'Colombia')->first();
         $news = collect($futbolred['channel']['item']);
-        $news->each(function ($new) use ($appNews, $team){
-            $created = $appNews->create([
-                'title' => $new['title'],
-                'description' => !empty($new['description']) ? $new['description'] : null,
-                'published_at' => Carbon::createFromFormat('D, j M Y H:i:s O', $new['pubDate'])->toDateTimeString(),
-                'added_on' => Carbon::now()->toDateTimeString(),
-                'source' => $new['link'],
-                'image' => isset($new['enclosure']) ? $new['enclosure']['@attributes']['url'] : null,
-                'source_name' => 'Futbolred'
-            ]);
-            $created->teams()->attach($team->id);
+        $news->each(function ($new) use ($appNews, $team) {
+            if (!$appNews->where('title', $new['title'])->exists()) {
+                $created = $appNews->create([
+                    'title' => $new['title'],
+                    'description' => !empty($new['description']) ? $new['description'] : null,
+                    'published_at' => Carbon::createFromFormat('D, j M Y H:i:s O', $new['pubDate'])->toDateTimeString(),
+                    'added_on' => Carbon::now()->toDateTimeString(),
+                    'source' => $new['link'],
+                    'image' => isset($new['enclosure']) ? $new['enclosure']['@attributes']['url'] : null,
+                    'source_name' => 'Futbolred'
+                ]);
+                $created->teams()->attach($team->id);
+            }
         });
 
     }
